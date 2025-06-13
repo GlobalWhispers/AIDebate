@@ -1,0 +1,39 @@
+# Core dependencies
+openai>=1.0.0
+anthropic>=0.3.0
+pyyaml>=6.0
+asyncio-mqtt>=0.11.0
+
+# Environment and configuration
+python-dotenv>=1.0.0
+
+# Web framework and streaming
+fastapi>=0.104.0
+websockets>=11.0
+uvicorn>=0.24.0
+
+# Data handling
+pydantic>=2.0.0
+python-json-logger>=2.0.0
+
+# Testing
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.11.0
+
+# Utilities
+click>=8.1.0
+rich>=13.0.0
+aiofiles>=23.0.0
+
+# Optional AI model providers
+transformers>=4.30.0
+torch>=2.0.0
+
+# Development tools
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+#Web
+websockets

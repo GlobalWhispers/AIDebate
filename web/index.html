@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎭 AI Jubilee Debate - Enhanced Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 15px 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            color: #4f46e5;
+            margin: 0;
+            font-size: 1.8em;
+        }
+
+        .topic {
+            color: #6b7280;
+            margin-top: 5px;
+            font-size: 1.1em;
+        }
+
+        .status-bar {
+            background: #1f2937;
+            color: white;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+        }
+
+        .real-time-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #10b981;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .connection-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #10b981;
+        }
+
+        .connection-dot.disconnected {
+            background: #ef4444;
+        }
+
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            grid-template-rows: 1fr auto;
+            gap: 10px;
+            padding: 10px;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            grid-column: 1;
+            grid-row: 1;
+        }
+
+        .bot-dashboard {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .activity-monitor {
+            grid-column: 1 / -1;
+            grid-row: 2;
+            max-height: 300px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            background: #4f46e5;
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            scroll-behavior: smooth;
+            max-height: 500px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            position: relative;
+            animation: messageSlideIn 0.3s ease-out;
+        }
+
+        @keyframes messageSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.human {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            margin-right: auto;
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.moderator {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            margin: 0 auto;
+            text-align: center;
+            border-radius: 25px;
+            max-width: 95%;
+        }
+
+        .message-header {
+            font-size: 0.8em;
+            opacity: 0.9;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .sender-name {
+            font-weight: bold;
+        }
+
+        .timestamp {
+            font-size: 0.7em;
+            opacity: 0.7;
+        }
+
+        .message-content {
+            line-height: 1.4;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: #f9fafb;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 25px;
+            outline: none;
+            font-size: 1em;
+            resize: none;
+            min-height: 48px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.2s ease;
+        }
+
+        .chat-input:focus {
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .send-button {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-width: 80px;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
+        }
+
+        .send-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .activity-monitor {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .activity-log {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .message-flow {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .bot-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding: 15px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .bot-card {
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #4f46e5;
+            transition: transform 0.2s ease;
+        }
+
+        .bot-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .bot-card.active {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+        }
+
+        .bot-card.thinking {
+            border-left-color: #f59e0b;
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .bot-card.monitoring {
+            border-left-color: #6b7280;
+            background: #f9fafb;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .bot-name {
+            font-size: 1em;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #6b7280;
+        }
+
+        .status-indicator.active { background: #10b981; }
+        .status-indicator.thinking { background: #f59e0b; }
+        .status-indicator.monitoring { background: #6b7280; }
+
+        .bot-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            font-size: 0.75em;
+        }
+
+        .stat {
+            background: rgba(0, 0, 0, 0.05);
+            padding: 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #4f46e5;
+        }
+
+        .activity-log {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .activity-log-header {
+            background: #f3f4f6;
+            padding: 12px;
+            font-weight: bold;
+            font-size: 0.9em;
+            color: #374151;
+        }
+
+        .activity-log-content {
+            height: 180px;
+            overflow-y: auto;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+        }
+
+        .log-entry {
+            margin: 3px 0;
+            padding: 4px 8px;
+            border-radius: 4px;
+            border-left: 3px solid #d1d5db;
+        }
+
+        .log-entry.check {
+            border-left-color: #3b82f6;
+            background: #eff6ff;
+        }
+
+        .log-entry.trigger {
+            border-left-color: #10b981;
+            background: #f0fdf4;
+        }
+
+        .log-entry.response {
+            border-left-color: #8b5cf6;
+            background: #faf5ff;
+        }
+
+        .log-entry.error {
+            border-left-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .log-timestamp {
+            color: #6b7280;
+            font-size: 0.9em;
+        }
+
+        .controls {
+            padding: 12px;
+            border-top: 1px solid #e5e7eb;
+            background: #f9fafb;
+            text-align: center;
+        }
+
+        .btn {
+            background: #4f46e5;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-right: 10px;
+            transition: background 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #3730a3;
+        }
+
+        .btn.small {
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        .message-flow {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .message-flow-header {
+            background: #f3f4f6;
+            padding: 12px;
+            font-weight: bold;
+            color: #374151;
+        }
+
+        .message-flow-content {
+            padding: 12px;
+            height: 180px;
+            overflow-y: auto;
+        }
+
+        .message-bubbles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .message-bubble {
+            background: #e5e7eb;
+            padding: 6px 10px;
+            border-radius: 15px;
+            font-size: 0.8em;
+            max-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .message-bubble.human { background: #fbbf24; color: white; }
+        .message-bubble.bot { background: #10b981; color: white; }
+        .message-bubble.moderator { background: #8b5cf6; color: white; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎭 AI Jubilee Debate - Enhanced Monitor</h1>
+        <div class="topic" id="debateTopic">Loading topic...</div>
+    </div>
+
+    <div class="status-bar">
+        <div class="real-time-stats">
+            <div class="stat-item">
+                <div class="stat-value" id="totalMessages">0</div>
+                <div class="stat-label">Messages</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="botChecks">0</div>
+                <div class="stat-label">Bot Checks</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="triggerRate">0%</div>
+                <div class="stat-label">Trigger Rate</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="activeConnections">0</div>
+                <div class="stat-label">Connections</div>
+            </div>
+        </div>
+
+        <div class="connection-status">
+            <div class="connection-dot" id="connectionDot"></div>
+            <span id="connectionStatus">Connecting...</span>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="panel chat-container">
+            <div class="panel-header">💬 Live Debate Chat</div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be inserted here -->
+            </div>
+
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chatForm">
+                    <textarea
+                        class="chat-input"
+                        id="messageInput"
+                        placeholder="Type your message and join the debate..."
+                        rows="1"
+                    ></textarea>
+                    <button type="submit" class="send-button" id="sendButton">Send</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="panel bot-dashboard">
+            <div class="panel-header">🤖 Bot Status Dashboard</div>
+
+            <div class="bot-grid" id="botGrid">
+                <!-- Bot cards will be populated here -->
+            </div>
+
+            <div class="controls">
+                <button class="btn small" onclick="resetBotStats()">Reset Bot Stats</button>
+            </div>
+        </div>
+
+        <div class="panel activity-monitor">
+            <div class="panel-header">📊 Activity Monitor</div>
+
+            <div class="activity-monitor">
+                <div class="activity-log">
+                    <div class="activity-log-header">🔍 Bot Activity Log</div>
+                    <div class="activity-log-content" id="activityLog">
+                        <div class="log-entry">
+                            <span class="log-timestamp">[Starting...]</span>
+                            Waiting for bot activity...
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn small" onclick="clearLogs()">Clear Logs</button>
+                    </div>
+                </div>
+
+                <div class="message-flow">
+                    <div class="message-flow-header">💬 Message Flow</div>
+                    <div class="message-flow-content">
+                        <div class="message-bubbles" id="messageBubbles">
+                            <!-- Message bubbles will appear here -->
+                        </div>
+                    </div>
+                    <div class="controls">
+                        <button class="btn small" onclick="resetStats()">Reset Stats</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class EnhancedDebateInterface {
+            constructor() {
+                this.ws = null;
+                this.isConnected = false;
+                this.bots = new Map();
+                this.messageCount = 0;
+                this.botChecks = 0;
+                this.totalTriggers = 0;
+                this.recentMessages = [];
+
+                this.initializeElements();
+                this.setupEventListeners();
+                this.connect();
+            }
+
+            initializeElements() {
+                this.chatMessages = document.getElementById('chatMessages');
+                this.messageInput = document.getElementById('messageInput');
+                this.sendButton = document.getElementById('sendButton');
+                this.chatForm = document.getElementById('chatForm');
+                this.connectionDot = document.getElementById('connectionDot');
+                this.connectionStatus = document.getElementById('connectionStatus');
+                this.botGrid = document.getElementById('botGrid');
+                this.activityLog = document.getElementById('activityLog');
+                this.messageBubbles = document.getElementById('messageBubbles');
+            }
+
+            setupEventListeners() {
+                this.chatForm.addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.sendMessage();
+                });
+
+                this.messageInput.addEventListener('input', () => {
+                    this.autoResize();
+                });
+
+                this.messageInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.sendMessage();
+                    }
+                });
+            }
+
+            connect() {
+                const wsUrl = 'ws://localhost:8081';
+                this.ws = new WebSocket(wsUrl);
+
+                this.ws.onopen = () => {
+                    console.log('Connected to debate server');
+                    this.isConnected = true;
+                    this.updateConnectionStatus('Connected', true);
+                    this.addLogEntry('check', '✅ Connected to debate server');
+                };
+
+                this.ws.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    this.handleMessage(data);
+                };
+
+                this.ws.onclose = () => {
+                    console.log('Disconnected from debate server');
+                    this.isConnected = false;
+                    this.updateConnectionStatus('Disconnected', false);
+                    this.addLogEntry('error', '❌ Disconnected from server');
+
+                    setTimeout(() => {
+                        if (!this.isConnected) {
+                            this.addLogEntry('check', '🔄 Attempting to reconnect...');
+                            this.connect();
+                        }
+                    }, 3000);
+                };
+
+                this.ws.onerror = (error) => {
+                    console.error('WebSocket error:', error);
+                    this.updateConnectionStatus('Error', false);
+                    this.addLogEntry('error', '⚠️ Connection error occurred');
+                };
+            }
+
+            handleMessage(data) {
+                switch (data.type) {
+                    case 'message':
+                        this.addMessage(data);
+                        this.addMessageBubble(data.sender, data.message_type);
+                        this.simulateBotActivity(data);
+                        break;
+                    case 'participants':
+                        this.updateParticipants(data.participants);
+                        break;
+                    case 'topic':
+                        this.updateTopic(data.topic);
+                        break;
+                    case 'bot_activity':
+                        this.addLogEntry(data.log_type, data.message);
+                        break;
+                    case 'bot_status':
+                        this.updateBotStatus(data);
+                        break;
+                    case 'debate_stats':
+                        this.updateStats(data);
+                        break;
+                }
+            }
+
+            addMessage(data) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${data.message_type}`;
+
+                const headerDiv = document.createElement('div');
+                headerDiv.className = 'message-header';
+
+                const senderSpan = document.createElement('span');
+                senderSpan.className = 'sender-name';
+                senderSpan.textContent = data.sender;
+
+                const timestampSpan = document.createElement('span');
+                timestampSpan.className = 'timestamp';
+                timestampSpan.textContent = new Date().toLocaleTimeString();
+
+                headerDiv.appendChild(senderSpan);
+                headerDiv.appendChild(timestampSpan);
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.textContent = data.content;
+
+                messageDiv.appendChild(headerDiv);
+                messageDiv.appendChild(contentDiv);
+
+                this.chatMessages.appendChild(messageDiv);
+                this.scrollChatToBottom();
+
+                // Update message count
+                this.messageCount++;
+                this.updateRealTimeStats();
+            }
+
+            addMessageBubble(sender, type) {
+                const bubble = document.createElement('div');
+                bubble.className = `message-bubble ${type}`;
+                bubble.textContent = sender;
+
+                this.messageBubbles.appendChild(bubble);
+
+                // Keep only last 10 bubbles
+                while (this.messageBubbles.children.length > 10) {
+                    this.messageBubbles.removeChild(this.messageBubbles.firstChild);
+                }
+            }
+
+            simulateBotActivity(data) {
+                // Simulate bot checking activity when a message is received
+                if (data.message_type === 'human') {
+                    this.addLogEntry('trigger', `📢 New human message: "${data.content.substring(0, 30)}..."`);
+
+                    // Simulate each bot checking
+                    this.bots.forEach((botData, botName) => {
+                        setTimeout(() => {
+                            this.botChecks++;
+                            botData.checks = (botData.checks || 0) + 1;
+                            this.addLogEntry('check', `🔍 ${botName} checking message...`);
+
+                            // Random chance to trigger response
+                            if (Math.random() < 0.4) {
+                                this.totalTriggers++;
+                                botData.triggers = (botData.triggers || 0) + 1;
+                                botData.status = 'thinking';
+                                this.addLogEntry('trigger', `⚡ ${botName} TRIGGERED! Generating response...`);
+                                this.updateBotGrid();
+
+                                // Simulate response delay
+                                setTimeout(() => {
+                                    if (Math.random() < 0.8) {
+                                        botData.status = 'active';
+                                        botData.responses = (botData.responses || 0) + 1;
+                                        this.addLogEntry('response', `✅ ${botName} responded!`);
+                                    } else {
+                                        botData.status = 'monitoring';
+                                        this.addLogEntry('check', `💭 ${botName} decided not to respond`);
+                                    }
+                                    this.updateBotGrid();
+                                    this.updateRealTimeStats();
+                                }, Math.random() * 2000 + 500);
+                            } else {
+                                this.addLogEntry('check', `⏰ ${botName} checked but no trigger`);
+                            }
+
+                            this.updateRealTimeStats();
+                        }, Math.random() * 500);
+                    });
+                }
+            }
+
+            updateParticipants(participants) {
+                participants.forEach(p => {
+                    if (p.type === 'bot') {
+                        this.bots.set(p.name, {
+                            name: p.name,
+                            stance: p.stance,
+                            personality: p.personality,
+                            status: 'monitoring',
+                            checks: 0,
+                            triggers: 0,
+                            responses: 0,
+                            lastActivity: Date.now()
+                        });
+                    }
+                });
+                this.updateBotGrid();
+                this.addLogEntry('check', `👥 Loaded ${participants.length} participants`);
+            }
+
+            updateBotGrid() {
+                this.botGrid.innerHTML = '';
+
+                this.bots.forEach((botData, botName) => {
+                    const card = document.createElement('div');
+                    card.className = `bot-card ${botData.status}`;
+
+                    card.innerHTML = `
+                        <div class="bot-name">
+                            <div class="status-indicator ${botData.status}"></div>
+                            ${botName}
+                            <span style="font-size: 0.8em; color: #6b7280;">(${botData.stance})</span>
+                        </div>
+                        <div class="bot-stats">
+                            <div class="stat">
+                                <div class="stat-value">${botData.checks || 0}</div>
+                                <div>Checks</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${botData.triggers || 0}</div>
+                                <div>Triggers</div>
+                            </div>
+                            <div class="stat">
+                                <div class="stat-value">${botData.responses || 0}</div>
+                                <div>Responses</div>
+                            </div>
+                        </div>
+                        <div style="margin-top: 8px; font-size: 0.7em; color: #6b7280;">
+                            Last activity: ${new Date(botData.lastActivity).toLocaleTimeString()}
+                        </div>
+                    `;
+
+                    this.botGrid.appendChild(card);
+                });
+            }
+
+            addLogEntry(type, message) {
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type}`;
+                entry.innerHTML = `<span class="log-timestamp">[${new Date().toLocaleTimeString()}]</span> ${message}`;
+
+                this.activityLog.appendChild(entry);
+                this.activityLog.scrollTop = this.activityLog.scrollHeight;
+
+                // Keep only last 50 entries
+                while (this.activityLog.children.length > 50) {
+                    this.activityLog.removeChild(this.activityLog.firstChild);
+                }
+            }
+
+            updateRealTimeStats() {
+                document.getElementById('totalMessages').textContent = this.messageCount;
+                document.getElementById('botChecks').textContent = this.botChecks;
+                document.getElementById('triggerRate').textContent =
+                    this.messageCount > 0 ? Math.round((this.totalTriggers / this.messageCount) * 100) + '%' : '0%';
+                document.getElementById('activeConnections').textContent = this.isConnected ? '1' : '0';
+            }
+
+            sendMessage() {
+                if (!this.isConnected || !this.messageInput.value.trim()) {
+                    return;
+                }
+
+                const message = {
+                    type: 'human_message',
+                    content: this.messageInput.value.trim(),
+                    sender: 'Human_1'
+                };
+
+                this.ws.send(JSON.stringify(message));
+                this.messageInput.value = '';
+                this.autoResize();
+            }
+
+            updateTopic(topic) {
+                document.getElementById('debateTopic').textContent = topic;
+            }
+
+            updateConnectionStatus(status, connected) {
+                this.connectionStatus.textContent = status;
+                this.connectionDot.className = `connection-dot ${connected ? '' : 'disconnected'}`;
+                this.sendButton.disabled = !connected;
+            }
+
+            autoResize() {
+                this.messageInput.style.height = 'auto';
+                this.messageInput.style.height = Math.min(this.messageInput.scrollHeight, 120) + 'px';
+            }
+
+            scrollChatToBottom() {
+                this.chatMessages.scrollTop = this.chatMessages.scrollHeight;
+            }
+
+            updateBotStatus(data) {
+                const botData = this.bots.get(data.name);
+                if (botData) {
+                    botData.status = data.status;
+                    this.updateBotGrid();
+                }
+            }
+
+            updateStats(stats) {
+                // Handle any additional stats from the server
+                console.log('Received stats:', stats);
+            }
+        }
+
+        function clearLogs() {
+            document.getElementById('activityLog').innerHTML =
+                '<div class="log-entry"><span class="log-timestamp">[Logs Cleared]</span> Ready for new activity...</div>';
+        }
+
+        function resetBotStats() {
+            if (window.debateInterface) {
+                window.debateInterface.bots.forEach(bot => {
+                    bot.checks = 0;
+                    bot.triggers = 0;
+                    bot.responses = 0;
+                    bot.status = 'monitoring';
+                });
+                window.debateInterface.updateBotGrid();
+            }
+        }
+
+        function resetStats() {
+            if (window.debateInterface) {
+                window.debateInterface.messageCount = 0;
+                window.debateInterface.botChecks = 0;
+                window.debateInterface.totalTriggers = 0;
+                window.debateInterface.updateRealTimeStats();
+                clearLogs();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            window.debateInterface = new EnhancedDebateInterface();
+        });
+    </script>
+</body>
+</html>
