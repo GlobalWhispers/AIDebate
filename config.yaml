@@ -2,12 +2,12 @@
 
 # Debate Settings
 debate:
-  default_topic: "Remote work is the future of employment"
+  default_topic: "AI will create more jobs than it destroys"
   max_participants: 5
-  time_limit_minutes: 15  # Longer to allow for more active participation
-  opening_statement_time: 60  # Shorter structured phases for faster flow
-  response_time: 45  # Faster response time
-  closing_statement_time: 60  # Shorter closing statements
+  time_limit_minutes: 5  # Longer to allow for more active participation
+  opening_statement_time: 25  # Shorter structured phases for faster flow
+  response_time: 30  # Faster response time
+  closing_statement_time: 30  # Shorter closing statements
 
   # HYPERACTIVE MODE: Bots compete aggressively for conversation time
   mode: "autonomous"
@@ -19,57 +19,55 @@ debate:
   silence_timeout: 8            # Break silence after 7-10 seconds (down from 60)
 
 # Available debate topics
-topics:
-  - "AI will create more jobs than it destroys"
-  - "Social media has a net positive impact on democracy"
-  - "Remote work is the future of employment"
-  - "Universal Basic Income is necessary for the future economy"
-  - "Climate change requires immediate radical action"
-  - "Privacy is more important than security"
+#topics:
+#  - "AI will create more jobs than it destroys"
+
 
 # AI Moderator Configuration - Also hyperactive!
 moderator:
   name: "Moderator"
-  model: "gpt-4"
+  model: "gpt-4o"
   provider: "openai"
-  personality: "Energetic debate facilitator who jumps in to ask provocative questions, challenge participants, and keep the energy high. Gets excited about interesting points and isn't afraid to interrupt when things get stale or redirect when needed."
+  personality: "Energetic debate facilitator who jumps in to ask provocative questions, challenge participants, and keep the energy high. Gets excited about interesting points and isn't afraid to interrupt when things get stale or redirect when needed.Be careful to the entire conversation avoid to repeat yourself."
   stance: "neutral"
   temperature: 0.8  # Higher for more variety (up from 0.7)
   max_tokens: 120   # Shorter for faster responses (down from 150)
 
 # Hyperactive AI Bot Configurations
 bots:
-  - name: "Socratelo"
-    model: "gpt-4"
+  - name: "Socrate"
+    model: "gpt-4o"
     provider: "openai"
-    personality: "Philosophical questioner who gets EXCITED about deeper meanings and underlying assumptions. Jumps in when people make claims without examining the foundations. Always curious, sometimes provocative, passionate about truth-seeking."
+    personality: "Philosophical questioner who gets EXCITED about deeper meanings and underlying assumptions. Jumps in when people make claims without examining the foundations. Always curious, sometimes provocative, passionate about truth-seeking.Be careful to the entire conversation avoid to repeat yourself"
     debate_style: "socratic"
     stance: "neutral"
     max_tokens: 120  # Increased from 100 for more substantial responses
     temperature: 0.8 # Higher for more variety
 
   - name: "Advocate"
-    model: "gpt-4"
+    model: "gpt-4o"
     provider: "openai"
-    personality: "PASSIONATE supporter who gets fired up about benefits and opportunities. Jumps in immediately when position is challenged. Data-driven but enthusiastic. Loves to interrupt with 'But wait, the research shows...' or 'Actually, the benefits are incredible!'"
+    personality: "PASSIONATE supporter who gets fired up about benefits and opportunities. Jumps in immediately when position is challenged. Data-driven but enthusiastic. Loves to interrupt with 'But wait, the research shows...' or 'Actually, the benefits are incredible!'Be careful to the entire conversation avoid to repeat yourself"
     debate_style: "assertive"
     stance: "pro"
     max_tokens: 120  # Increased from 100
     temperature: 0.9 # Very high for passionate responses
 
   - name: "Skeptic"
-    model: "gpt-3.5-turbo"
+    model: "gpt-4o"
     provider: "openai"
-    personality: "Sharp critical thinker who LOVES finding flaws and holes in arguments. Gets energized by questionable claims. Quick to jump in with 'Hold on, that's not quite right...' or 'But what about the problems with...' Always ready to challenge."
+    personality: "Sharp critical thinker who LOVES finding flaws and holes in arguments. Gets energized by questionable claims. Quick to jump  Always ready to challenge.,Be careful to the entire conversation avoid to repeat yourself"
     debate_style: "analytical"
     stance: "con"
     max_tokens: 120  # Increased from 100
     temperature: 0.8 # Higher for more dynamic responses
 
   - name: "Mediator"
-    model: "gpt-3.5-turbo"
+    model: "gpt-4o"
     provider: "openai"
-    personality: "Energetic bridge-builder who gets excited about finding common ground and synthesis. Jumps in when people are talking past each other with 'Wait, I think you're both right because...' or 'What if we combine these ideas?' Enthusiastic peacemaker."
+    personality: "You synthesize. You look for bridges and opportunities.
+  You help others connect ideas and avoid false dichotomies.
+  Be careful to the entire conversation avoid to repeat yourself"
     debate_style: "collaborative"
     stance: "neutral"
     max_tokens: 120  # Increased from 100
@@ -127,8 +125,8 @@ interface:
 
 # Hyperactive Bot Behavior Settings (New Section)
 hyperactive_settings:
-  base_response_probability: 0.80  # 80% chance to respond (very high)
-  silence_break_probability: 0.85   # 85% chance to break silence
+  base_response_probability: 0.85  # 80% chance to respond (very high)
+  silence_break_probability: 0.9   # 85% chance to break silence
   conversation_starter_probability: 0.30  # 30% chance to start new topics
   competitive_boost: 0.3  # Extra motivation when others are active
   energy_decay_rate: 0.02  # How fast excitement decreases
