@@ -671,7 +671,7 @@ class BotActivityLogger:
 async def run_web_debate():
     """Run debate with web interface using natural bot conversations."""
 
-    print("🎭 AI Jubilee Debate - Natural Conversation Mode with Voting")
+    print("🎭 AI DebateArena - Natural Conversation Mode with Voting")
     print("=" * 60)
 
     # Start HTML server in background
