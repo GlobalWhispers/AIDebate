@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-Enhanced web runner that creates natural conversations by properly integrating
+Web runner that creates natural conversations by properly integrating
 the real bot system with autonomous monitoring and chat log integration.
+NOW WITH BOT VOTING SUPPORT!
 """
 
 import asyncio
@@ -11,6 +12,7 @@ import socketserver
 from pathlib import Path
 import sys
 import os
+import random
 
 # Add current directory to path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -47,8 +49,8 @@ def serve_html():
         httpd.serve_forever()
 
 
-class EnhancedWebServer(DebateWebServer):
-    """Enhanced web server that properly integrates with real bot system."""
+class WebServerWithVoting(DebateWebServer):
+    """Web server that properly integrates with real bot system and voting."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,7 +63,7 @@ class EnhancedWebServer(DebateWebServer):
         print(f"🤖 Connected {len(self.real_bots)} real bots to web server")
 
     async def handle_human_message(self, data):
-        """Enhanced human message handling with real bot integration."""
+        """Human message handling with real bot integration."""
         sender = data.get('sender', 'Human_1')
         content = data.get('content', '').strip()
 
@@ -100,6 +102,220 @@ class EnhancedWebServer(DebateWebServer):
         """Set the real chat log instance."""
         self.chat_log_real = chat_log
         print(f"🔗 Web server connected to REAL chat log")
+
+
+class BotVotingCapability:
+    """Adds voting capability to bots' autonomous monitoring."""
+
+    def __init__(self, bots, voting_system, chat_log, web_server, topic):
+        self.bots = bots
+        self.voting_system = voting_system
+        self.chat_log = chat_log
+        self.web_server = web_server
+        self.topic = topic
+        self.voting_active = False
+        self.bots_who_voted = set()
+
+    def add_voting_to_bots(self):
+        """Add voting detection to all bots' autonomous monitoring."""
+        for bot in self.bots:
+            # Add voting detection method to each bot
+            bot.voting_capability = self
+            bot._original_process_new_message = bot._process_new_message
+            bot._process_new_message = self._create_voting_aware_processor(bot)
+            print(f"🗳️ Added voting capability to {bot.name}")
+
+    def _create_voting_aware_processor(self, bot):
+        """Create message processor that detects voting calls."""
+
+        async def voting_aware_process_new_message(message):
+            # First check if this is a voting message
+            if await self._detect_and_handle_voting(message, bot):
+                return  # Bot will handle voting, don't do regular response
+
+            # Otherwise, proceed with normal message processing
+            await bot._original_process_new_message(message)
+
+        return voting_aware_process_new_message
+
+    async def _detect_and_handle_voting(self, message, bot):
+        """Detect if a message is calling for votes and make bot vote."""
+        content_lower = message.content.lower()
+
+        # Voting trigger words
+        voting_triggers = [
+             'cast your vote', 'time to vote',
+            'voting session', 'please vote', 'voting starts',
+            'voting begins', 'vote now', 'cast votes'
+        ]
+
+        # Check if this message is about voting
+        is_voting_message = any(trigger in content_lower for trigger in voting_triggers)
+
+        if not is_voting_message:
+            return False
+
+        # Check if this bot has already voted
+        if bot.name in self.bots_who_voted:
+            print(f"🗳️ {bot.name} already voted, skipping")
+            return True
+
+        print(f"🗳️ {bot.name} detected voting call: '{message.content[:50]}...'")
+
+        # Generate and cast vote
+        await self._make_bot_vote(bot)
+        return True
+
+    async def _make_bot_vote(self, bot):
+        """Make a bot generate and cast their vote."""
+        try:
+            # Wait a random time (1-8 seconds) to make voting feel natural
+            wait_time = random.uniform(1, 8)
+            await asyncio.sleep(wait_time)
+
+            print(f"🗳️ {bot.name} is preparing to vote...")
+
+            # Generate vote using bot's AI
+            vote_result = await self._generate_bot_vote(bot)
+
+            if vote_result:
+                # Mark as voted
+                self.bots_who_voted.add(bot.name)
+
+                # Create voting message
+                vote_message = f"🗳️ I vote: {vote_result['vote'].upper()}\n\nMy reasoning: {vote_result['reasoning']}"
+
+                # Add to chat log
+                await self.chat_log.add_message(bot.name, vote_message)
+
+                print(f"✅ {bot.name} voted: {vote_result['vote']} - {vote_result['reasoning'][:50]}...")
+
+        except Exception as e:
+            print(f"❌ {bot.name} voting error: {e}")
+
+    async def _generate_bot_vote(self, bot):
+        """Generate a vote using the bot's AI provider."""
+        try:
+            # Get recent conversation for context
+            recent_messages = list(self.chat_log.messages)[-10:] if self.chat_log.messages else []
+
+            # Create voting prompt
+            voting_prompt = self._create_voting_prompt(bot, recent_messages)
+
+            # Generate vote using bot's AI
+            response = await bot.ai_provider.generate_response(voting_prompt, bot.config)
+
+            # Parse the response to extract vote and reasoning
+            return self._parse_vote_response(response, bot)
+
+        except Exception as e:
+            print(f"❌ Error generating vote for {bot.name}: {e}")
+            return None
+
+    def _create_voting_prompt(self, bot, recent_messages):
+        """Create a voting prompt for the bot."""
+
+        # Build conversation context
+        context = "\n".join([f"{msg.sender}: {msg.content}" for msg in recent_messages[-8:]])
+
+        messages = [
+            {
+                'role': 'system',
+                'content': f"""You are {bot.name} in a debate about: {self.topic}
+
+Your personality: {bot.config.personality}
+Your initial stance: {bot.config.stance}
+
+VOTING TIME! You must now cast your vote based on the debate discussion.
+
+IMPORTANT VOTING GUIDELINES:
+1. BE OBJECTIVE - Consider all arguments presented, not just your initial stance
+2. Base your vote on the QUALITY and STRENGTH of evidence and reasoning shared
+3. You can change your mind if compelling arguments were made
+4. Stay true to your personality while being fair and analytical
+5. Consider what would truly be best based on the discussion
+
+Your personality influences HOW you evaluate arguments:
+- If analytical: Focus on data and logical reasoning
+- If philosophical: Consider deeper implications and principles  
+- If practical: Think about real-world implementation
+- If diplomatic: Weigh all perspectives fairly
+- If passionate: Consider the human impact and urgency
+
+Vote options:
+- YES/FOR: You support the topic after considering the debate
+- NO/AGAINST: You oppose the topic after considering the debate
+- ABSTAIN: Arguments were too close to call or you need more information
+
+RESPOND IN THIS EXACT FORMAT:
+VOTE: [YES/NO/ABSTAIN]
+REASONING: [2-3 sentences explaining your objective assessment based on the debate discussion]
+
+Remember: Vote based on the STRONGEST ARGUMENTS presented, not just your initial position."""
+            },
+            {
+                'role': 'user',
+                'content': f"""Recent debate discussion:
+{context}
+
+Based on this discussion, please cast your objective vote on: {self.topic}
+
+Consider all the evidence and arguments presented. Vote for what you believe is truly best supported by the debate.
+
+Format:
+VOTE: [YES/NO/ABSTAIN]
+REASONING: [Your objective assessment]"""
+            }
+        ]
+
+        return messages
+
+    def _parse_vote_response(self, response, bot):
+        """Parse the bot's vote response."""
+        try:
+            lines = response.strip().split('\n')
+            vote = None
+            reasoning = None
+
+            for line in lines:
+                if line.upper().startswith('VOTE:'):
+                    vote_text = line.split(':', 1)[1].strip().upper()
+                    if 'YES' in vote_text or 'FOR' in vote_text or 'AGREE' in vote_text:
+                        vote = 'YES'
+                    elif 'NO' in vote_text or 'AGAINST' in vote_text or 'DISAGREE' in vote_text:
+                        vote = 'NO'
+                    elif 'ABSTAIN' in vote_text or 'NEUTRAL' in vote_text:
+                        vote = 'ABSTAIN'
+
+                elif line.upper().startswith('REASONING:'):
+                    reasoning = line.split(':', 1)[1].strip()
+
+            # Fallback: try to extract from anywhere in response
+            if not vote:
+                response_upper = response.upper()
+                if any(word in response_upper for word in ['YES', 'FOR', 'AGREE', 'SUPPORT']):
+                    vote = 'YES'
+                elif any(word in response_upper for word in ['NO', 'AGAINST', 'DISAGREE', 'OPPOSE']):
+                    vote = 'NO'
+                else:
+                    vote = 'ABSTAIN'
+
+            if not reasoning:
+                reasoning = f"After objectively considering the debate, this reflects the strongest position based on the evidence presented."
+
+            return {
+                'vote': vote,
+                'reasoning': reasoning
+            }
+
+        except Exception as e:
+            print(f"❌ Error parsing vote for {bot.name}: {e}")
+            # Fallback based on stance but mention objectivity
+            fallback_vote = 'YES' if bot.config.stance == 'pro' else 'NO' if bot.config.stance == 'con' else 'ABSTAIN'
+            return {
+                'vote': fallback_vote,
+                'reasoning': f"Based on my objective analysis of the debate and my {bot.config.stance} perspective."
+            }
 
 
 async def setup_natural_bot_monitoring(bots, chat_log, web_server, topic):
@@ -305,7 +521,7 @@ class TimeManager:
             elif percent_remaining > 25:
                 messages = [f"⏰ {minutes:.0f} minutes remaining - time for strong closing arguments!"]
             else:
-                messages = [f"⏰ FINAL MINUTES! Last chance to make your case!"]
+                messages = [f"⏰ FINAL MINUTES! Lasts vote! Vote:"]
 
         elif intervention_type == "topic_pivot":
             self.pivot_count += 1
@@ -328,8 +544,8 @@ class TimeManager:
             print(f"🎭 Moderator intervention: {intervention_type} - '{message[:50]}...'")
 
 
-class EnhancedBotMonitor:
-    """Enhanced bot monitoring that uses ALL config values."""
+class BotMonitor:
+    """Bot monitoring that uses ALL config values."""
 
     def __init__(self, config):
         self.config = config
@@ -354,7 +570,7 @@ class EnhancedBotMonitor:
         self.confidence_boost = evolution.get('confidence_boost', 0.03)
         self.frustration_buildup = evolution.get('frustration_buildup', 0.02)
 
-        print(f"🧠 Enhanced Bot Monitor initialized from config:")
+        print(f"🧠 Bot Monitor initialized from config:")
         print(f"  Base Response Probability: {self.base_probability:.0%}")
         print(f"  Personality Multipliers: {self.personality_multipliers}")
         print(f"  Competition enabled: {self.enable_rivalry}")
@@ -451,28 +667,11 @@ class BotActivityLogger:
         """Log when bot responds."""
         await self.web_server.log_bot_response(bot_name, response)
 
-    """Logger that connects real bot activity to web interface."""
-
-    def __init__(self, web_server):
-        self.web_server = web_server
-
-    async def log_bot_thinking(self, bot_name, message):
-        """Log when bot is thinking about a message."""
-        await self.web_server.log_bot_check(bot_name, message)
-
-    async def log_bot_triggered(self, bot_name, message):
-        """Log when bot is triggered."""
-        await self.web_server.log_bot_trigger(bot_name, message)
-
-    async def log_bot_responded(self, bot_name, response):
-        """Log when bot responds."""
-        await self.web_server.log_bot_response(bot_name, response)
-
 
 async def run_web_debate():
     """Run debate with web interface using natural bot conversations."""
 
-    print("🎭 AI Jubilee Debate - Enhanced Natural Conversation Mode")
+    print("🎭 AI Jubilee Debate - Natural Conversation Mode with Voting")
     print("=" * 60)
 
     # Start HTML server in background
@@ -483,13 +682,13 @@ async def run_web_debate():
     print("📋 Loading configuration...")
     config = load_config()
 
-    # Create Enhanced WebSocket server
-    print("🔗 Starting Enhanced WebSocket server...")
-    web_server = EnhancedWebServer()
+    # Create WebSocket server
+    print("🔗 Starting WebSocket server...")
+    web_server = WebServerWithVoting()
     await web_server.start_server()
 
-    # Create your existing components with enhanced integration
-    print("🚀 Setting up enhanced debate components...")
+    # Create your existing components with integration
+    print("🚀 Setting up debate components...")
 
     # Chat log with web integration
     chat_log = ChatLog()
@@ -515,7 +714,7 @@ async def run_web_debate():
     print(f"  OpenAI: {'✅' if api_keys['openai'] else '❌'}")
     print(f"  Anthropic: {'✅' if api_keys['anthropic'] else '❌'}")
 
-    # Create REAL bots with enhanced monitoring
+    # Create REAL bots with monitoring
     participants = []
     bots = []
 
@@ -576,8 +775,8 @@ async def run_web_debate():
     print("⏰ Setting up intelligent time management...")
     time_manager = TimeManager(config, moderator, chat_log, web_server)
 
-    # Create enhanced bot monitor with config percentages
-    bot_monitor = EnhancedBotMonitor(config)
+    # Create bot monitor with config percentages
+    bot_monitor = BotMonitor(config)
 
     print("🧠 Setting up NATURAL bot conversations...")
 
@@ -587,13 +786,19 @@ async def run_web_debate():
     # Set up moderator monitoring
     await setup_moderator_monitoring(moderator, web_server)
 
-    print("🎯 Enhanced system ready!")
+    # Set up bot voting capability
+    print("🗳️ Setting up bot voting capabilities...")
+    bot_voting_capability = BotVotingCapability(bots, voting_system, chat_log, web_server, topic)
+    bot_voting_capability.add_voting_to_bots()
+
+    print("🎯 System ready!")
     print(f"🌐 Open browser to: http://localhost:8080")
     print(f"🔗 WebSocket: ws://localhost:8081")
     print(f"📝 Topic: {topic}")
+    print(f"🗳️ Bots will automatically vote when voting is called!")
     print()
 
-    # Send enhanced initial message
+    # Send initial message
     participant_list = []
     for p in participants:
         if hasattr(p, 'config') and hasattr(p.config, 'stance'):  # Bot
@@ -602,13 +807,14 @@ async def run_web_debate():
             participant_list.append(f"👤 {p.name} - Can type anytime!")
 
     initial_message = (
-            f"🎭 Welcome to AI Jubilee Debate - NATURAL CONVERSATION MODE!\n\n"
+            f"🎭 Welcome to AI Jubilee Debate - NATURAL CONVERSATION MODE with VOTING!\n\n"
             f"📝 Topic: {topic}\n\n"
             f"👥 Participants:\n" + "\n".join(participant_list) +
             f"\n\n🧠 BOTS ARE NOW ACTIVELY MONITORING!\n"
             f"✨ They will respond naturally when they feel compelled\n"
+            f"🗳️ They will vote when voting is called\n"
             f"💬 Type your message to start the natural debate!\n"
-            f"🔥 Bots check every message and decide autonomously whether to respond"
+            f"🔥 Bots check every message and decide autonomously whether to respond or vote"
     )
 
     await web_server.broadcast_message(
@@ -617,16 +823,17 @@ async def run_web_debate():
         message_type="moderator"
     )
 
-    print("🚀 NATURAL CONVERSATION MODE ACTIVE!")
+    print("🚀 NATURAL CONVERSATION MODE WITH VOTING ACTIVE!")
     print("🤖 All bots are autonomously monitoring the chat log")
     print("💬 They will respond when triggered by your messages")
+    print("🗳️ They will vote when they detect voting calls")
     print("🧠 Each message you send triggers real bot decision-making")
     print("🛑 Press Ctrl+C to stop")
 
     # Create activity logger
     activity_logger = BotActivityLogger(web_server)
 
-    # Keep the server running with enhanced monitoring
+    # Keep the server running with monitoring
     try:
         # Start the debate timer
         time_manager.start_timing()
@@ -648,15 +855,22 @@ async def run_web_debate():
 
             # Check if debate time is up
             remaining_time = time_manager.get_remaining_time()
+
             if remaining_time <= 0:
+                await chat_log.add_message("Moderator",
+                                           "⏰ TIME'S UP! Time to vote!cast votes:"
+                                           )
+                print("⏰ TIME'S UP! Time to vote!cast votes:")
+
+            if remaining_time <= 30:
                 await chat_log.add_message("Moderator",
                                            "⏰ TIME'S UP! The debate has concluded. Thank you all for the fantastic discussion!"
                                            )
                 print("⏰ Debate time expired - ending session")
                 break
 
-            # Enhanced statistics with time info
-            enhanced_stats = {
+            # Statistics with time info and voting status
+            stats = {
                 'active_bots': len([p for p in participants if hasattr(p, 'config')]),
                 'total_participants': len(participants),
                 'monitoring_bots': len([b for b in bots if b.is_monitoring]),
@@ -667,10 +881,12 @@ async def run_web_debate():
                 'remaining_time': remaining_time,
                 'current_phase': time_manager.get_time_phase(),
                 'total_time': time_manager.total_time,
-                'pivot_count': time_manager.pivot_count
+                'pivot_count': time_manager.pivot_count,
+                'bots_who_voted': len(bot_voting_capability.bots_who_voted),
+                'voting_ready': True
             }
 
-            await web_server.broadcast_stats(enhanced_stats)
+            await web_server.broadcast_stats(stats)
 
             # Show bot status and probabilities every 2 minutes
             if iteration % 24 == 0:  # Every 2 minutes (24 * 5 second intervals)
@@ -682,7 +898,9 @@ async def run_web_debate():
                     prob = bot_monitor.get_bot_response_probability(bot, sample_message, recent_messages)
                     status = "MONITORING" if bot.is_monitoring else "INACTIVE"
                     total_responses = getattr(bot, 'total_responses', 0)
-                    print(f"  {bot.name}: {status} ({total_responses} responses, {prob:.0%} trigger chance)")
+                    voted_status = "✅" if bot.name in bot_voting_capability.bots_who_voted else "🗳️"
+                    print(
+                        f"  {bot.name}: {status} ({total_responses} responses, {prob:.0%} trigger chance) {voted_status}")
 
                 # Show time status
                 elapsed_min = time_manager.get_elapsed_time() / 60
@@ -727,7 +945,7 @@ async def run_web_debate():
 
         print("✅ Natural conversation system shutdown complete!")
 
-        # Show final statistics with time breakdown
+        # Show final statistics with time breakdown and voting
         if chat_log.messages:
             final_stats = chat_log.get_statistics()
             total_time_minutes = time_manager.get_elapsed_time() / 60
@@ -739,14 +957,18 @@ async def run_web_debate():
                 f"  ⏰ Total Time: {total_time_minutes:.1f} minutes (of {config['debate']['time_limit_minutes']} planned)")
             print(f"  🔄 Topic Pivots: {time_manager.pivot_count}")
             print(f"  📈 Messages/Minute: {final_stats['total_messages'] / max(1, total_time_minutes):.1f}")
+            print(f"  🗳️ Bots Who Voted: {len(bot_voting_capability.bots_who_voted)}/{len(bots)}")
 
             # Show individual bot performance
             print(f"\n🤖 Bot Performance:")
             for bot in bots:
+                voted_status = "✅ VOTED" if bot.name in bot_voting_capability.bots_who_voted else "❌ Did not vote"
                 if hasattr(bot, 'get_stats'):
                     bot_stats = bot.get_stats()
                     print(f"  {bot.name}: {bot_stats.get('autonomous_responses', 0)} responses, "
-                          f"{bot_stats.get('success_rate', 0):.1%} success rate")
+                          f"{bot_stats.get('success_rate', 0):.1%} success rate, {voted_status}")
+                else:
+                    print(f"  {bot.name}: {voted_status}")
 
 
 def main():
@@ -777,7 +999,7 @@ def main():
         print("🔧 Install with: pip install python-dotenv")
         return
 
-    print("🚀 Starting Natural Conversation Debate System...")
+    print("🚀 Starting Natural Conversation Debate System with Voting...")
     asyncio.run(run_web_debate())
 
 
