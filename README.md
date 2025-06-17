@@ -39,7 +39,7 @@ This isn't just another chatbot - it's a **living debate ecosystem** where AI an
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/ai-debate-arena.git
+git clone https://github.com/GlobalWhispers/AIDebate
 cd ai-debate-arena
 
 # Install dependencies
@@ -199,6 +199,7 @@ This is a **scrappy first version** and **work in progress** built with extensiv
 - 🔐 **Security concerns** - Currently for development/demo use only
 - 💾 **Memory management** - Long debates might cause issues
 - 🔧 **Error handling** - Some edge cases crash the system
+- 💸 **Money** - money fly when a lot of AI models talk.
 
 ### 🆘 **Please Help Us Fix These!**
 - **Found a bug?** → Open an issue!
@@ -206,6 +207,7 @@ This is a **scrappy first version** and **work in progress** built with extensiv
 - **Bots acting weird?** → Share the conversation log!
 - **Performance problems?** → Let us know your system specs!
 - **Documentation unclear?** → Suggest better explanations!
+- **Ideas ?** → What models would you like to see here and what ideas to be debated?
 
 **Remember**: This is experimental software - expect rough edges, but also expect rapid improvements with your feedback!
 
@@ -245,7 +247,7 @@ This is a scrappy first version built with lots of AI assistance - **we definite
 ### 📬 How to Contribute
 ```bash
 # Fork the repo
-git fork https://github.com/yourusername/ai-debate-arena.git
+git fork https://github.com/GlobalWhispers/AIDebate
 
 # Create a feature/fix branch
 git checkout -b fix/your-improvement
