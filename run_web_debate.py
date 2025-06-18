@@ -807,7 +807,7 @@ async def run_web_debate():
             participant_list.append(f"👤 {p.name} - Can type anytime!")
 
     initial_message = (
-            f"🎭 Welcome to AI Jubilee Debate - NATURAL CONVERSATION MODE with VOTING!\n\n"
+            f"🎭 Welcome to AI Debate Arena - NATURAL CONVERSATION MODE with VOTING!\n\n"
             f"📝 Topic: {topic}\n\n"
             f"👥 Participants:\n" + "\n".join(participant_list) +
             f"\n\n🧠 BOTS ARE NOW ACTIVELY MONITORING!\n"
